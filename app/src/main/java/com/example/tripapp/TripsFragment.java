@@ -12,14 +12,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.example.tripapp.databinding.FragmentTripsBinding;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -46,7 +47,23 @@ public class TripsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
     }
+
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.menu, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.logout:
+                mListener.logout();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -91,9 +108,6 @@ public class TripsFragment extends Fragment {
                     }
                 });
 
-
-
-
     }
 
     @Override
@@ -123,27 +137,35 @@ public class TripsFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull TripsViewHolder holder, int position) {
+
             Trip trip = mTrips.get(position);
             Log.d("test", "onBindViewHolder: "+ trip.tripName);
 
             holder.tripName.setText(trip.tripName);
-
-
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
-            holder.startedAt.setText("Started At: "+sdf.format(trip.startAt.toDate()));
 
-            if(trip.completeAt==null){
+            if(trip.startedAt != null){
+            holder.startedAt.setText("Started At: "+sdf.format(trip.startedAt.toDate()));
+            } else{
+            holder.startedAt.setText("N/A");
+            }
+
+
+            if(trip.completedAt ==null){
                 holder.completedAt.setText("Completed At: N/A");
                 holder.status.setText("On Going");
                 holder.status.setTextColor(getResources().getColor(R.color.orange));
                 holder.miles.setText("");
             }
             else {
-                holder.completedAt.setText("Completed At: "+sdf.format(trip.completeAt.toDate()));
+
+                holder.completedAt.setText("Completed At: "+sdf.format(trip.completedAt.toDate()));
                 holder.status.setText("Completed");
                 holder.status.setTextColor(getResources().getColor(R.color.green));
-                holder.miles.setText(trip.totalMiles+" Miles");
+
+                holder.miles.setText(String.format("%.2f", trip.totalMiles)+" Miles");
             }
+            holder.mTrip = trip;
         }
 
         @Override
@@ -168,8 +190,7 @@ public class TripsFragment extends Fragment {
                 itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mListener.goToTripDetails();
-
+                        mListener.goToTripDetails(mTrip);
                     }
                 });
 
@@ -194,6 +215,7 @@ public class TripsFragment extends Fragment {
 
     public interface TripsFragmentListener {
         void goToNewTrip();
-        void goToTripDetails();
+        void goToTripDetails(Trip trip);
+        void logout();
     }
 }

@@ -173,9 +173,9 @@ public class CreateTripFragment extends Fragment {
 
                                     HashMap<String, Object> tripData = new HashMap<>();
                                     tripData.put("tripName", tripName);
-                                    tripData.put("startAt", FieldValue.serverTimestamp());
+                                    tripData.put("startedAt", FieldValue.serverTimestamp());
                                     tripData.put("ownerId", user.getUid());
-                                    tripData.put("completeAt", null);
+                                    tripData.put("completedAt", null);
                                     tripData.put("startLatitude", location.getLatitude());
                                     tripData.put("startLongitude", location.getLongitude());
                                     tripData.put("endLatitude",0.0);
