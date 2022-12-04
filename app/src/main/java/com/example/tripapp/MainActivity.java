@@ -48,6 +48,14 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
     }
 
     @Override
+    public void goToTripDetails() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.rootView, new TripDetailFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
     public void doneCreatingTrip() {
         getSupportFragmentManager().popBackStack();
     }

@@ -175,12 +175,12 @@ public class CreateTripFragment extends Fragment {
                                     tripData.put("tripName", tripName);
                                     tripData.put("startAt", FieldValue.serverTimestamp());
                                     tripData.put("ownerId", user.getUid());
-                                    tripData.put("completeAt", 0);
+                                    tripData.put("completeAt", null);
                                     tripData.put("startLatitude", location.getLatitude());
                                     tripData.put("startLongitude", location.getLongitude());
-                                    tripData.put("endLatitude",null);
-                                    tripData.put("endLongitude",null);
-                                    tripData.put("totalMiles",0);
+                                    tripData.put("endLatitude",0.0);
+                                    tripData.put("endLongitude",0.0);
+                                    tripData.put("totalMiles",0.0);
 
                                     DocumentReference tripDocRef = FirebaseFirestore.getInstance().collection("Trips").document();
                                     tripData.put("tripId", tripDocRef.getId());
