@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
-public class MainActivity extends AppCompatActivity implements LoginFragment.LoginListener, CreateAccountFragment.CreateAccountListener, TripsFragment.TripsFragmentListener {
+public class MainActivity extends AppCompatActivity implements LoginFragment.LoginListener, CreateAccountFragment.CreateAccountListener, TripsFragment.TripsFragmentListener, CreateTripFragment.CreateTripListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -13,14 +13,16 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
 
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.rootView, new LoginFragment())
-
                 .commit();
     }
+
+
+
 
     @Override
     public void gotoTrips() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.rootView, new TripsFragment())
+                .replace(R.id.rootView, new TripsFragment()).addToBackStack(null)
                 .commit();
     }
 
@@ -43,5 +45,10 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
                 .replace(R.id.rootView, new CreateTripFragment())
                 .addToBackStack(null)
                 .commit();
+    }
+
+    @Override
+    public void doneCreatingTrip() {
+        getSupportFragmentManager().popBackStack();
     }
 }
