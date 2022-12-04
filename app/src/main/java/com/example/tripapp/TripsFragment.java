@@ -27,6 +27,7 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 public class TripsFragment extends Fragment {
@@ -126,16 +127,19 @@ public class TripsFragment extends Fragment {
             Log.d("test", "onBindViewHolder: "+ trip.tripName);
 
             holder.tripName.setText(trip.tripName);
-            holder.startedAt.setText(trip.startAt+"");
+
+
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
+            holder.startedAt.setText("Started At: "+sdf.format(trip.startAt.toDate()));
 
             if(trip.completeAt==null){
-                holder.completedAt.setText("N/A");
+                holder.completedAt.setText("Completed At: N/A");
                 holder.status.setText("On Going");
                 holder.status.setTextColor(getResources().getColor(R.color.orange));
                 holder.miles.setText("");
             }
             else {
-                holder.completedAt.setText(trip.completeAt+"");
+                holder.completedAt.setText("Completed At: "+sdf.format(trip.completeAt.toDate()));
                 holder.status.setText("Completed");
                 holder.status.setTextColor(getResources().getColor(R.color.green));
                 holder.miles.setText(trip.totalMiles+" Miles");
