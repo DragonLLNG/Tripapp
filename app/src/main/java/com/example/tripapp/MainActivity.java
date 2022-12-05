@@ -15,12 +15,25 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.rootView, new LoginFragment())
-                .commit();
+
+        super.onCreate(savedInstanceState);
+
+
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        setContentView(R.layout.activity_main);
+        if(mAuth.getCurrentUser() == null){
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.rootView, new LoginFragment())
+                    .commit();
+        } else {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.rootView, new TripsFragment())
+                    .commit();
+        }
+
+
+
     }
 
 

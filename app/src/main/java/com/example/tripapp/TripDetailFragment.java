@@ -15,6 +15,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -36,32 +37,40 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.Priority;
 import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 
 public class TripDetailFragment extends Fragment {
 
     Trip mTrip;
     FusedLocationProviderClient client;
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-
-
+    GoogleMap mMap;
+    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
 
     private static final String ARG_PARAM_TRIP = "param_trip";
 
@@ -87,12 +96,6 @@ public class TripDetailFragment extends Fragment {
             mTrip = (Trip) getArguments().getSerializable(ARG_PARAM_TRIP);
         }
 
-        SupportMapFragment mapFragment = SupportMapFragment.newInstance();
-        getActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .add(R.id.map_container, mapFragment)
-                .commit();
-
     }
 
 
@@ -100,30 +103,13 @@ public class TripDetailFragment extends Fragment {
     FragmentTripDetailBinding binding;
 
 
-    private OnMapReadyCallback callback = new OnMapReadyCallback() {
-
-        /**
-         * Manipulates the map once available.
-         * This callback is triggered when the map is ready to be used.
-         * This is where we can add markers or lines, add listeners or move the camera.
-         * In this case, we just add a marker near Sydney, Australia.
-         * If Google Play services is not installed on the device, the user will be prompted to
-         * install it inside the SupportMapFragment. This method will only be triggered once the
-         * user has installed Google Play services and returned to the app.
-         */
-        @Override
-        public void onMapReady(GoogleMap googleMap) {
-            LatLng current = new LatLng(mTrip.startLatitude,mTrip.startLongitude);
-            googleMap.addMarker(new MarkerOptions().position(current).title("Marker in Start"));
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(current));
-        }
-    };
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
+
 
         binding = FragmentTripDetailBinding.inflate(inflater, container, false);
         return binding.getRoot();
@@ -133,7 +119,50 @@ public class TripDetailFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
+
+
+
+        SupportMapFragment supportMapFragment = (SupportMapFragment) getChildFragmentManager()
+                .findFragmentById(R.id.googleMap);
+
+        supportMapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(@NonNull GoogleMap googleMap) {
+
+                mMap = googleMap;
+
+                UiSettings mUiSettings;
+
+                    mUiSettings = googleMap.getUiSettings();
+
+                    mUiSettings.setZoomControlsEnabled(true);
+                    LatLng start = new LatLng(mTrip.startLatitude,mTrip.startLongitude);
+                    googleMap.addMarker(new MarkerOptions().position(start).title("Marker in Start"));
+                    if (mTrip.completedAt!=null) {
+                        LatLng end = new LatLng(mTrip.endLatitude, mTrip.endLongitude);
+                        googleMap.addMarker(new MarkerOptions().position(end).title("Marker in End"));
+
+
+                        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                        builder.include(start);
+                        builder.include(end);
+
+                        int width = getResources().getDisplayMetrics().widthPixels;
+                        int height = getResources().getDisplayMetrics().heightPixels;
+                        int padding = (int) (width * 0.20); // offset from edges of the map 10% of screen
+
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), width, height, padding));
+
+                    }
+                    else {
+
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(start));
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(start, 12));
+                    }
+                }
+
+        });
+
 
 
         binding.textViewTrip.setText(mTrip.tripName);
@@ -149,20 +178,7 @@ public class TripDetailFragment extends Fragment {
             binding.btnComplete.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
-
-                    if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
-                            == PackageManager.PERMISSION_GRANTED
-                            && ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
-                            == PackageManager.PERMISSION_GRANTED) {
-
-                        setUpLocationUpdates();
-
-                    }
-
-
-
-
+                    setUpLocationUpdates();
                 }
             });
         }
@@ -222,6 +238,7 @@ public class TripDetailFragment extends Fragment {
 
 
             DocumentReference tripRef = FirebaseFirestore.getInstance().collection("Trips").document(mTrip.tripId);
+
             tripRef.update("completedAt", FieldValue.serverTimestamp());
             tripRef.update("endLatitude",locationResult.getLocations().get(0).getLatitude());
             tripRef.update("endLongitude",locationResult.getLocations().get(0).getLongitude());
@@ -232,49 +249,37 @@ public class TripDetailFragment extends Fragment {
             double distance = results[0];
             double miles = distance*0.000621371192;
 
+
+
             tripRef.update("totalMiles",miles);
 
+            binding.textViewComplete.setText("Completed At: "+sdf.format(new Date()));
+            binding.textViewStatus.setText("Completed");
+            binding.textViewStatus.setTextColor(getResources().getColor(R.color.green));
+            binding.textViewMiles.setVisibility(View.VISIBLE);
+            binding.btnComplete.setVisibility(View.INVISIBLE);
+            binding.textViewMiles.setText(String.format("%.2f", miles)+" Miles");
+
+
+            LatLng start = new LatLng(mTrip.startLatitude,mTrip.startLongitude);
+            mMap.addMarker(new MarkerOptions().position(start).title("Marker in Start"));
+            LatLng end = new LatLng(locationResult.getLocations().get(0).getLatitude()
+                    , locationResult.getLocations().get(0).getLongitude());
+            mMap.addMarker(new MarkerOptions().position(end).title("Marker in End"));
+
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+            builder.include(start);
+            builder.include(end);
+
+            int width = getResources().getDisplayMetrics().widthPixels;
+            int height = getResources().getDisplayMetrics().heightPixels;
+            int padding = (int) (width * 0.20);
+
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), width, height, padding));
 
 
         }
     };
 
-    void showCustomDialog(String title, String message,
-                          String positiveBntTitle, DialogInterface.OnClickListener positiveListener,
-                          String negativeBntTitle, DialogInterface.OnClickListener negativeListener){
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(title)
-                .setMessage(message)
-                .setPositiveButton(positiveBntTitle,positiveListener)
-                .setNegativeButton(negativeBntTitle,negativeListener);
-        builder.create().show();
-    }
-    private ActivityResultLauncher<String[]> multiplePermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
-        @SuppressLint("MissingPermission")
-        @Override
-        public void onActivityResult(Map<String, Boolean> result) {
-            boolean fineLocationAllowed = false;
-            if(result.get(Manifest.permission.ACCESS_FINE_LOCATION) != null) {
-                fineLocationAllowed = result.get(Manifest.permission.ACCESS_FINE_LOCATION);
-                if (fineLocationAllowed) {
-
-                    setUpLocationUpdates();
-
-
-                } else {
-                    if (!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                        showCustomDialog("Location Permission", "This app needs the fine location permission to track your location",
-                                "Allow", new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS, Uri.parse("package: " + BuildConfig.APPLICATION_ID));
-                                        startActivity(intent);
-                                    }
-                                }, "Cancel", null);
-                    }
-
-                }
-            }
-        }
-    });
 }
 

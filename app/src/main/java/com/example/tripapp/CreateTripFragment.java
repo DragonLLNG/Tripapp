@@ -161,6 +161,7 @@ public class CreateTripFragment extends Fragment {
                         @Override
                         public void onComplete(@NonNull Task<Location> task) {
                             if (task.isSuccessful()){
+
                                 binding.locationLoadingStatus.setText(" Success");
                                 binding.locationLoadingStatus.setTextColor(getResources().getColor(R.color.green));
 
@@ -169,6 +170,9 @@ public class CreateTripFragment extends Fragment {
 
                                 if(tripName.isEmpty()){
                                     Toast.makeText(getActivity(), "Please enter a Trip name", Toast.LENGTH_SHORT).show();
+
+                                } else if( binding.locationLoadingStatus.getText().toString()==" Loading..."){
+                                    Toast.makeText(getActivity(), "Still loading", Toast.LENGTH_SHORT).show();
                                 } else {
 
                                     HashMap<String, Object> tripData = new HashMap<>();
@@ -202,8 +206,6 @@ public class CreateTripFragment extends Fragment {
                                 }
 
 
-
-
                             } else {
                                 task.getException().printStackTrace();
                             }
@@ -232,38 +234,6 @@ public class CreateTripFragment extends Fragment {
     }
 
 
-
-
-
-//                if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
-//                        == PackageManager.PERMISSION_GRANTED
-//                        && ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
-//                        == PackageManager.PERMISSION_GRANTED) {
-//                    // When permission is granted
-//                    // Call method
-//                    client.getLastLocation()
-//                            .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
-//                                @Override
-//                                public void onSuccess(Location location) {
-//                                    // Got last known location. In some rare situations this can be null.
-//
-//
-//                                    if (location != null) {
-//                                        binding.locationLoadingStatus.setText("Success");
-//
-//                                        binding.locationLoadingStatus.setTextColor(getResources().getColor(R.color.teal_200));
-//
-//                                        // Logic to handle location object
-//                                        Log.d("Location", "onSuccess:" + location.toString());
-//                                    }
-//                                }
-//                            });
-//                }
-//                else{
-//                    requestPermissions(
-//                            new String[] {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION }, 100);
-//                    Log.d("Location", "onClick: No permission");
-//                }
 
     void showCustomDialog(String title, String message,
                           String positiveBntTitle, DialogInterface.OnClickListener positiveListener,
@@ -321,93 +291,6 @@ private ActivityResultLauncher<String[]> multiplePermissionLauncher = registerFo
         }
     });
 
-
-
-
-//    @Override
-//    public void onRequestPermissionsResult(
-//            int requestCode, @NonNull String[] permissions,
-//            @NonNull int[] grantResults)
-//    {
-//        super.onRequestPermissionsResult(
-//                requestCode, permissions, grantResults);
-//        // Check condition
-//        if (requestCode == 100 && (grantResults.length > 0)
-//                && (grantResults[0] + grantResults[1]
-//                == PackageManager.PERMISSION_GRANTED)) {
-//            // When permission are granted
-//            // Call  method
-//            getCurrentLocation();
-//        }
-//        else {
-//            // When permission are denied
-//            // Display toast
-//            Toast
-//                    .makeText(getActivity(),
-//                            "Permission denied",
-//                            Toast.LENGTH_SHORT)
-//                    .show();
-//        }
-//    }
-//
-//    @SuppressLint("MissingPermission")
-//    private void getCurrentLocation() {
-//        LocationManager locationManager
-//                = (LocationManager)getActivity().getSystemService(Context.LOCATION_SERVICE);
-//        // Check condition
-//        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-//            // When location service is enabled
-//            // Get last location
-//            client.getLastLocation().addOnCompleteListener(
-//                    new OnCompleteListener<Location>() {
-//                        @RequiresApi(api = Build.VERSION_CODES.S)
-//                        @Override
-//                        public void onComplete(
-//                                @NonNull Task<Location> task)
-//                        {
-//                            // Initialize location
-//                            Location location = task.getResult();
-//                            // Check condition
-//                            if (location != null) {
-//                                // When location result is not null
-//                                Log.d("Location", "onComplete: "+location.toString());
-//                                binding.locationLoadingStatus.setText(location.describeContents());
-//                            }
-//                            else {
-//                                // When location result is null
-//                                // initialize location request
-//                                LocationRequest locationRequest = new LocationRequest.Builder(60 * 60 * 1000)
-//                                        .setMinUpdateIntervalMillis(500)
-//                                        .setMaxUpdateDelayMillis(1000)
-//                                        .build();
-//
-//                                // Initialize location call back
-//                                LocationCallback locationCallback = new LocationCallback() {
-//                                    @Override
-//                                    public void
-//                                    onLocationResult(LocationResult locationResult)
-//                                    {
-//                                        // Initialize
-//                                        // location
-//                                        Location location1 = locationResult.getLastLocation();
-//                                        Log.d("Location", "onComplete: "+location1.toString());
-//
-//                                    }
-//                                };
-//
-//                                // Request location updates
-//                               // client.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
-//                            }
-//                        }
-//                    });
-//        }
-//        else {
-//            // When location service is not enabled
-//            // open location setting
-//            startActivity(
-//                    new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-//        }
-//    }
 
 }
 

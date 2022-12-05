@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
@@ -73,10 +74,12 @@ public class LoginFragment extends Fragment {
         binding.buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 String email = binding.editTextEmail.getText().toString();
                 String password = binding.editTextPassword.getText().toString();
 
                 if(email.isEmpty()){
+
                     Toast.makeText(getContext(), "Email is required", Toast.LENGTH_SHORT).show();
                 } else if(password.isEmpty()){
                     Toast.makeText(getContext(), "Password is required", Toast.LENGTH_SHORT).show();
@@ -95,6 +98,8 @@ public class LoginFragment extends Fragment {
 
 
                         } else {
+
+
                             Toast.makeText(getActivity(), "Login Failed", Toast.LENGTH_SHORT).show();
                         }
                     });
